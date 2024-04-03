@@ -33,7 +33,7 @@ class TextMessagesHandler {
     const request = await openai.completions.create({
       "model": "gpt-3.5-turbo-instruct",
       "prompt": text,
-      "max_tokens": 4096
+      "max_tokens": 4000
     }).catch(() => {})
 
     if (request) {
