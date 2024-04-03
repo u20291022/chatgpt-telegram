@@ -6,6 +6,16 @@ import { chatgptHistory } from "../utils/chatgpt-history";
 import { RateLimitError } from "openai/error";
 
 class TextMessagesHandler {
+  private chatgptRules = "You are answering in telegram chat. Parse mode is HTML. You must use HTML styling and emojis. Use bold style to mark important info. Answer on the same language as last user request. Answer in a clear and concise manner.";
+
+  public setChatGPTRules(rules: string): void {
+    this.chatgptRules = rules;
+  }
+
+  public getChatGPTRules(): string {
+    return this.chatgptRules;
+  }
+
   public async handle(data: TextMessageData, openai: OpenAI, methods: Telegram): Promise<void> {
     const { text, from } = data;
     const userId = from.id;
@@ -40,7 +50,7 @@ class TextMessagesHandler {
       "model": "gpt-3.5-turbo",
       "max_tokens": 4000,
       "messages": [
-        { "role": "system", "content": "You are answering in telegram chat. Parse mode is HTML. You must use HTML styling and emojis. Use bold style to mark important info. Answer on the same language as last user request. Answer in a clear and concise manner. Answer only on last user content, because all above is chat history" },
+        { "role": "system", "content": this.chatgptRules + ". Answer only on last user content, because all above is chat history" },
         ...chatgptHistory.get(userId),
         { "role": "user", "content": text }
       ],

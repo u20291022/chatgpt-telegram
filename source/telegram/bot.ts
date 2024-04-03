@@ -23,6 +23,7 @@ export class TelegramBot {
     this.listenStartCommand();
     this.listenAuthCommand();
     this.listenClearCommand();
+    this.listenRulesCommand();
     this.listenTextMessages();
 
     this.me.launch();
@@ -75,6 +76,27 @@ export class TelegramBot {
     });
   }
 
+  private listenRulesCommand() {
+    this.me.command("setRules", context => {
+      const userId = context.message.from.id;
+      
+      if (!auth.isUserAdmin(userId)) {
+        return context.reply("Тебе не дозволено использовать эту команду!");
+      }
+
+      const args = context.args;
+
+      if (args.length === 0) {
+        context.reply("Текущие правила бота: " + textMessagesHandler.getChatGPTRules());
+      }
+      else {
+        const rules = args.join(" ");
+        textMessagesHandler.setChatGPTRules(rules)
+        context.reply("Вы установили новые правила!");
+      }
+    });
+  }
+
   private listenTextMessages(): void {
     this.me.on(message("text"), context => {
       const message = context.message;
@@ -87,7 +109,8 @@ export class TelegramBot {
     this.methods.setMyCommands([
       { command: "start", description: "Запускает бота." },
       { command: "clear", description: "Очищает историю диалога." },
-      { command: "auth", description: "Для администраторов. Пример: /auth токен [id_пользователя имя_пользователя]" }
+      { command: "auth", description: "Для администраторов. Пример: /auth токен [id_пользователя имя_пользователя]" },
+      { command: "rules", description: "Для администраторов. Пример /rules новые_правила. Без аргументов выводит текущие." }
     ]);
   }
 } 
