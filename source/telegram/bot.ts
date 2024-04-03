@@ -77,7 +77,7 @@ export class TelegramBot {
   }
 
   private listenRulesCommand() {
-    this.me.command("setRules", context => {
+    this.me.command("rules", context => {
       const userId = context.message.from.id;
       
       if (!auth.isUserAdmin(userId)) {
