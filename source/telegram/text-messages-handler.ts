@@ -3,6 +3,7 @@ import { TextMessageData } from "../types/telegram";
 import { auth } from "../utils/auth";
 import OpenAI from "openai";
 import { chatgptHistory } from "../utils/chatgpt-history";
+import { RateLimitError } from "openai/error";
 
 class TextMessagesHandler {
   public async handle(data: TextMessageData, openai: OpenAI, methods: Telegram): Promise<void> {
@@ -30,16 +31,27 @@ class TextMessagesHandler {
     }
 
     methods.sendChatAction(userId, "typing").catch(() => {});
+    
+    const interval = setInterval(() => {
+      methods.sendChatAction(userId, "typing").catch(() => {});
+    }, 1000);
 
     const request = await openai.chat.completions.create({
       "model": "gpt-3.5-turbo",
       "max_tokens": 4000,
       "messages": [
-        { "role": "system", "content": "You are answering in telegram chat. You can use Markdown styling. Answer on the same language as request. Answer in a clear and concise manner. For code use this syntax: ```language_name\your_ncode```. Answer only on last user content, because all above is chat history" },
+        { "role": "system", "content": "You are answering in telegram chat. Parse mode is HTML. You must use HTML styling and emojis. Use bold style to mark important info. Answer on the same language as last user request. Answer in a clear and concise manner. Answer only on last user content, because all above is chat history" },
         ...chatgptHistory.get(userId),
         { "role": "user", "content": text }
-      ]
+      ],
+      "seed": Math.round(Math.random() * 0xfffffff)
+    }).catch((error: RateLimitError) => {
+      if (error.code === "rate_limit_exceed") {
+        methods.sendMessage(userId, "Превышен лимит сообщений!\nПопробуйте позже.").catch(() => {}); 
+      }
     })
+
+    clearInterval(interval);
 
     if (request) {
       const answer = request.choices[0].message.content;
@@ -47,8 +59,8 @@ class TextMessagesHandler {
       if (answer) {
         chatgptHistory.addMessage(userId, text, "user");
         chatgptHistory.addMessage(userId, answer, "assistant");
-        
-        await methods.sendMessage(userId, answer, { "parse_mode": "Markdown" });
+
+        await methods.sendMessage(userId, answer, { "parse_mode": "HTML" }).catch(() => {});
       }
       else {
         await methods.sendMessage(userId, "Произошла ошибка при обработке запроса!").catch(() => {});

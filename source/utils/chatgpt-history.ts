@@ -18,6 +18,11 @@ class ChatGPTHistory {
 
   public addMessage(userId: string | number, message: string, role: Role): void {
     this.history[userId].push({ "role": role, "content": message });
+
+    if (this.history[userId].length > 16) {
+      this.history[userId].shift();
+    }
+
     this.updateJson();
   }
 
