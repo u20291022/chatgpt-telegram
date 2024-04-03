@@ -1,15 +1,25 @@
+import { TelegramBotWithAI } from "./telegram/bot";
+import { TextGenerator } from "./openai/text-generator";
+import { Models } from "./types/openai";
+import OpenAI from "openai";
 import dotenv from "dotenv";
-import { TelegramBot } from "./telegram/bot";
+import { ImageGenerator } from "./openai/image-generator";
 dotenv.config();
 
 function main() {
   const telegramToken = process.env.TELEGRAM_TOKEN;
   const openaiToken = process.env.OPENAI_TOKEN;
 
-  if (!telegramToken) return console.error("Enter your telegram bot token to .env file! (TELEGRAM_TOKEN=*)");
-  if (!openaiToken) return console.error("Enter your OpenAI API token to .env file! (OPENAI_TOKEN=*)");
+  if (!telegramToken) throw new Error("Enter your telegram bot token to .env file! (TELEGRAM_TOKEN=*)");
+  if (!openaiToken) throw new Error("Enter your OpenAI API token to .env file! (OPENAI_TOKEN=*)");
 
-  const bot = new TelegramBot(telegramToken, openaiToken);
+  const openai = new OpenAI({ "apiKey": openaiToken });
+  const textGenerator = new TextGenerator(openai);
+  const imageGenerator = new ImageGenerator(openai);
+  const models: Models = { textGenerator, imageGenerator };
+
+  const bot = new TelegramBotWithAI(telegramToken, models);
+
   bot.launch();
 }
 

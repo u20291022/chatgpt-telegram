@@ -1,10 +1,14 @@
 export interface User {
-  name: string,
-  token: string,
-  admin?: boolean,
-  authorized?: boolean;
+  isAdmin: boolean,
+  isAuthorized: boolean
 }
 
 export interface Users {
   [id: string]: User
+}
+
+export type Token = string;
+export type TokenData = User;
+export interface Tokens {
+  [token: string]: TokenData
 }

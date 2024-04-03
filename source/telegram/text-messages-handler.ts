@@ -1,86 +1,51 @@
 import { Telegram } from "telegraf";
-import { TextMessageData } from "../types/telegram";
-import { auth } from "../utils/auth";
-import OpenAI from "openai";
-import { chatgptHistory } from "../utils/chatgpt-history";
-import { RateLimitError } from "openai/error";
+import { TextMessage, UserId } from "../types/telegram";
+import { authManager } from "../auth/auth-manager";
+import { tokensManager } from "../auth/tokens-manager";
+import { TextGenerator } from "../openai/text-generator";
 
-class TextMessagesHandler {
-  private chatgptRules = "You are answering in telegram chat. Parse mode is Markdown. You must use Markdown styling and emojis. Use bold style to mark important info. Answer on the same language as last user request. Answer in a clear and concise manner.";
-
-  public setChatGPTRules(rules: string): void {
-    this.chatgptRules = rules;
+export class TextMessagesHandler {
+  private textGenerator: TextGenerator;
+  private methods: Telegram;
+  
+  constructor(textGenerator: TextGenerator, methods: Telegram) {
+    this.textGenerator = textGenerator;
+    this.methods = methods;
   }
 
-  public getChatGPTRules(): string {
-    return this.chatgptRules;
-  }
+  public async handle(message: TextMessage): Promise<void> {
+    const text = message.text;
+    const userId = message.from.id;
 
-  public async handle(data: TextMessageData, openai: OpenAI, methods: Telegram): Promise<void> {
-    const { text, from } = data;
-    const userId = from.id;
-    const userName = from.first_name;
-
-    if (!auth.isUserCanUseBot(userId)) {
-      if (auth.isTokenAvailable(text)) {
-        auth.createNewUser(userId, {
-          name: userName,
-          token: text,
-          admin: false,
-          authorized: false
-        });
-
-        auth.authorizeUser(userId, text);
-
-        await methods.sendMessage(userId, "Вы были авторизованы!").catch(() => {});
+    if (!authManager.isUserAuthorized(userId)) {
+      if (tokensManager.isTokenAvailable(text)) {
+        authManager.createUserFromToken(text, userId)
+        this.sendAuthMessageToUser(userId);
       }
-      else {
-        await methods.sendMessage(userId, "Отправь мне действительный токен!").catch(() => {});
-      }
+      else await this.sendWrongTokenMessageToUser(userId);  
       return;
     }
 
-    methods.sendChatAction(userId, "typing").catch(() => {});
-    
-    const interval = setInterval(() => {
-      methods.sendChatAction(userId, "typing").catch(() => {});
-    }, 1000);
+    await this.sendTextGeneratorResponse(message);
+  }
 
-    const request = await openai.chat.completions.create({
-      "model": "gpt-3.5-turbo",
-      "max_tokens": 4000,
-      "messages": [
-        { "role": "system", "content": this.chatgptRules + ". Answer only on last user content, because all above is chat history" },
-        ...chatgptHistory.get(userId),
-        { "role": "user", "content": text }
-      ],
-      "seed": Math.round(Math.random() * 0xffffff)
-    }).catch((error: RateLimitError) => {
-      if (error.code === "rate_limit_exceed") {
-        methods.sendMessage(userId, "Превышен лимит сообщений!\nПопробуйте позже.").catch(() => {}); 
-      }
-    })
+  private async sendTextGeneratorResponse(message: TextMessage): Promise<void> {
+    const text = message.text;
+    const userId = message.from.id;
+    await this.setBotStateToTypingForUser(userId);
+    const response = await this.textGenerator.generate(text, userId);
+    await this.methods.sendMessage(userId, response).catch(() => {});
+  }
 
-    clearInterval(interval);
+  private async setBotStateToTypingForUser(userId: UserId): Promise<void> {
+    await this.methods.sendChatAction(userId, "typing").catch(() => {});
+  }
 
-    if (request) {
-      const answer = request.choices[0].message.content;
+  private async sendAuthMessageToUser(userId: UserId): Promise<void> {
+    await this.methods.sendMessage(userId, "✅ Вы были успешно авторизованы!").catch(() => {});
+  }
 
-      if (answer) {
-        chatgptHistory.addMessage(userId, text, "user");
-        chatgptHistory.addMessage(userId, answer, "assistant");
-
-        await methods.sendMessage(userId, answer, { "parse_mode": "Markdown" }).catch(() => {});
-      }
-      else {
-        await methods.sendMessage(userId, "Произошла ошибка при обработке запроса!").catch(() => {});
-      }
-
-      return;
-    }
-    
-    await methods.sendMessage(userId, "Произошла неизвестная ошибка!").catch(() => {});
+  private async sendWrongTokenMessageToUser(userId: UserId): Promise<void> {
+    await this.methods.sendMessage(userId, "⚠️ Отправьте действительный токен, полученный у администратора!").catch(() => {});
   }
 }
-
-export const textMessagesHandler = new TextMessagesHandler();

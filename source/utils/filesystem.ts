@@ -1,6 +1,14 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from "fs";
 
 class FileSystem {
+  private dataDirectoryPath = "data";
+  private logsDirectoryPath = `${this.dataDirectoryPath}/${this.dataDirectoryPath}`;
+
+  constructor() {
+    this.mkdir(this.dataDirectoryPath);
+    this.mkdir(this.logsDirectoryPath);
+  }
+
   public exists(path: string): boolean {
     return existsSync(path);
   }
@@ -16,25 +24,22 @@ class FileSystem {
   }
 
   public writeJson(path: string, data: any): void {
-    const stringifiedData = JSON.stringify(data, null, "\t");
+    const stringifiedData = JSON.stringify(data || {}, null, "\t");
     this.write(path, stringifiedData);
   }
 
-  public readText(path: string): string {
-    if (!this.exists(path)) return "";
+  public append<T extends { toString(): string }>(path: string, data: T): void {
+    appendFileSync(path, "\n" + data.toString());
+  }
 
-    const text = readFileSync(path, {"encoding": "utf8"});
-    return text;
+  public readText(path: string): string {
+    return this.exists(path) ? readFileSync(path, {"encoding": "utf8"}) : "";
   }
 
   public readJson(path: string): object {
-    if (!this.exists(path)) return {};
-
-    const text = this.readText(path);
-
     try {
-      const data = JSON.parse(text);
-      return data;
+      const text = this.readText(path);
+      return JSON.parse(text);
     }
     catch(error) {
       console.error("Some error occured on json parsing!\n" + error);
@@ -42,6 +47,9 @@ class FileSystem {
     }
   }
 
+  public getDataDirectoryPath(): string {
+    return this.dataDirectoryPath;
+  }
 }
 
 export const filesystem = new FileSystem();
