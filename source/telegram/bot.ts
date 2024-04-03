@@ -4,6 +4,7 @@ import { TextMessageData } from "../types/telegram";
 import { textMessagesHandler } from "./text-messages-handler";
 import { auth } from "../utils/auth";
 import OpenAI from "openai";
+import { chatgptHistory } from "../utils/chatgpt-history";
 
 export class TelegramBot {
   public me: Telegraf;
@@ -21,6 +22,7 @@ export class TelegramBot {
     
     this.listenStartCommand();
     this.listenAuthCommand();
+    this.listenClearCommand();
     this.listenTextMessages();
 
     this.me.launch();
@@ -65,6 +67,14 @@ export class TelegramBot {
     });
   }
 
+  private listenClearCommand(): void {
+    this.me.command("clear", context => {
+      const userId = context.from.id;
+      chatgptHistory.clear(userId);
+      context.reply("История диалога была очищена!");
+    });
+  }
+
   private listenTextMessages(): void {
     this.me.on(message("text"), context => {
       const message = context.message;
@@ -76,6 +86,7 @@ export class TelegramBot {
   private setCommands(): void {
     this.methods.setMyCommands([
       { command: "start", description: "Запускает бота." },
+      { command: "clear", description: "Очищает историю диалога." },
       { command: "auth", description: "Для администраторов. Пример: /auth токен [id_пользователя имя_пользователя]" }
     ]);
   }
