@@ -32,13 +32,14 @@ class TextMessagesHandler {
 
     const request = await openai.completions.create({
       "model": "gpt-3.5-turbo-instruct",
-      "prompt": text,
+      "prompt": text + ". You can write only text, emojis, code and links, but not images and etc",
       "max_tokens": 4000
     }).catch(() => {})
 
     if (request) {
       const answer = request.choices[0].text;
       await methods.sendMessage(userId, answer).catch(() => {});
+      return;
     }
     
     await methods.sendMessage(userId, "Произошла ошибка!").catch(() => {});
