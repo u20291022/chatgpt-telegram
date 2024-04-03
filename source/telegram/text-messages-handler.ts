@@ -33,7 +33,7 @@ export class TextMessagesHandler {
   private async sendTextGeneratorResponse(message: TextMessage): Promise<void> {
     const text = message.text;
     const userId = message.from.id;
-    const interval = setInterval(() => this.setBotStateToTypingForUser(userId), 500);
+    const interval = setInterval(() => this.setBotStateToTypingForUser(userId), 1000);
     const response = await this.textGenerator.generate(text, userId);
     clearInterval(interval);
     textHistory.addUserMessage(text, userId);

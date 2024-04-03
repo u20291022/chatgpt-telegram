@@ -39,7 +39,7 @@ class AuthManager {
     return ownerId;
   }
 
-  private loadUsersData(): void {
+  public loadUsersData(): void {
     this.users = filesystem.readJson(this.usersFilePath) as Users;
   }
 

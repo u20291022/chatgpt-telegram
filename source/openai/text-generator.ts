@@ -10,14 +10,12 @@ import { FileName } from "../types/files.enum";
 export class TextGenerator {
   private openai: OpenAI;
   private modelDataFilePath = `${filesystem.getDataDirectoryPath()}/${FileName.MODEL_DATA}`;
-  private modelInfo: TextModelInfo;
+  private modelInfo: TextModelInfo = { model: "gpt-3.5-turbo", "maxTokens": 0, "maxHistory": 0, "rules": "" };
 
   constructor(openai: OpenAI) {
     this.openai = openai;
-    if (!filesystem.exists(this.modelDataFilePath)) {
-      filesystem.writeJson(this.modelDataFilePath, this.getDefaultModelInfo());
-    }
-    this.modelInfo = filesystem.readJson(this.modelDataFilePath) as TextModelInfo;
+    if (filesystem.exists(this.modelDataFilePath)) this.loadModelData();
+    else filesystem.writeJson(this.modelDataFilePath, this.getDefaultModelInfo());
     textHistory.setHistorySize(this.modelInfo.maxHistory);
   }
 
@@ -77,5 +75,13 @@ export class TextGenerator {
       maxHistory: 12,
       rules: defaultRules
     }
+  }
+
+  public loadModelData(): void {
+    this.modelInfo = filesystem.readJson(this.modelDataFilePath) as TextModelInfo;
+  }
+
+  private saveModelData(): void {
+    filesystem.writeJson(this.modelDataFilePath, this.modelInfo);
   }
 }

@@ -16,8 +16,9 @@ export class ImageCommand {
   public async execute(commandData: CommandData): Promise<void> {
     const userId = commandData.from.id;
     const prompt = commandData.args.join(" ");
+    if (!this.isPromptValid(prompt)) return;
     if (!authManager.isUserAuthorized(userId)) return;
-    const interval = setInterval(() => this.setBotStateToUploadingPhotoeForUser(userId), 500);
+    const interval = setInterval(() => this.setBotStateToUploadingPhotoeForUser(userId), 1000);
     const response = await this.imageGenerator.generate(prompt);
     clearInterval(interval);
     await this.sendImageToUser(userId, response);
@@ -29,5 +30,9 @@ export class ImageCommand {
 
   private async sendImageToUser(userId: UserId, imageData: string): Promise<void> {
     await this.methods.sendPhoto(userId, imageData);
+  }
+
+  private isPromptValid(prompt: string): boolean {
+    return prompt.length > 0 && prompt.replace(/\ /g, "").length > 0;
   }
 }

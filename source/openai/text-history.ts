@@ -53,7 +53,7 @@ class TextHistory {
     return !!this.history[historyUserId];
   }
 
-  private loadHistoryData(): void {
+  public loadHistoryData(): void {
     this.history = <UsersHistory>filesystem.readJson(this.historyFilePath);
   }
 

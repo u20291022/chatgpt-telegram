@@ -42,15 +42,11 @@ class TokensManager {
     return md5(`${Math.random() * 0xffffff}${Math.random() * 0xffffff}`);
   }
 
-  public getTokensString(): string {
-    return this.getTokens().join("\n");
-  }
-
-  private getTokens(): Token[] {
+  public getTokens(): Token[] {
     return Object.keys(this.tokens);
   }
 
-  private loadTokensData(): void {
+  public loadTokensData(): void {
     this.tokens = filesystem.readJson(this.tokensFilePath) as Tokens;
   }
 

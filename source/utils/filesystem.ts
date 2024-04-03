@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } fr
 
 class FileSystem {
   private dataDirectoryPath = "data";
-  private logsDirectoryPath = `${this.dataDirectoryPath}/${this.dataDirectoryPath}`;
+  private logsDirectoryPath = `${this.dataDirectoryPath}/logs`;
 
   constructor() {
     this.mkdir(this.dataDirectoryPath);
