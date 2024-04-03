@@ -6,7 +6,7 @@ import { chatgptHistory } from "../utils/chatgpt-history";
 import { RateLimitError } from "openai/error";
 
 class TextMessagesHandler {
-  private chatgptRules = "You are answering in telegram chat. Parse mode is HTML. You must use HTML styling and emojis. Use bold style to mark important info. Answer on the same language as last user request. Answer in a clear and concise manner.";
+  private chatgptRules = "You are answering in telegram chat. Parse mode is Markdown. You must use Markdown styling and emojis. Use bold style to mark important info. Answer on the same language as last user request. Answer in a clear and concise manner.";
 
   public setChatGPTRules(rules: string): void {
     this.chatgptRules = rules;
@@ -54,7 +54,7 @@ class TextMessagesHandler {
         ...chatgptHistory.get(userId),
         { "role": "user", "content": text }
       ],
-      "seed": Math.round(Math.random() * 0xfffffff)
+      "seed": Math.round(Math.random() * 0xffffff)
     }).catch((error: RateLimitError) => {
       if (error.code === "rate_limit_exceed") {
         methods.sendMessage(userId, "Превышен лимит сообщений!\nПопробуйте позже.").catch(() => {}); 
@@ -70,7 +70,7 @@ class TextMessagesHandler {
         chatgptHistory.addMessage(userId, text, "user");
         chatgptHistory.addMessage(userId, answer, "assistant");
 
-        await methods.sendMessage(userId, answer, { "parse_mode": "HTML" }).catch(() => {});
+        await methods.sendMessage(userId, answer, { "parse_mode": "Markdown" }).catch(() => {});
       }
       else {
         await methods.sendMessage(userId, "Произошла ошибка при обработке запроса!").catch(() => {});
