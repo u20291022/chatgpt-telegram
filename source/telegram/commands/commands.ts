@@ -1,5 +1,5 @@
 import { BotCommand } from "telegraf/typings/core/types/typegram";
-import { Command } from "../../types/commands";
+import { Command } from "../../types/command.enum";
 
 class Commands {
   private list: BotCommand[] = [

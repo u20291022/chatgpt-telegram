@@ -12,7 +12,7 @@ export class ImageGenerator {
   public async generate(prompt: string): Promise<string> {
     try {
       const response = await this.sendRequest(prompt);
-      const generatedImageData = response.data[0].b64_json;
+      const generatedImageData = response.data[0].url;
       if (generatedImageData) return generatedImageData;
       else return "";
     }
@@ -25,7 +25,8 @@ export class ImageGenerator {
     return this.openai.images.generate({
       "model": this.model,
       "prompt": prompt,
-      "response_format": "b64_json"
+      "response_format": "url",
+      "style": "vivid"
     })
   }
 }

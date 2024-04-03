@@ -3,6 +3,7 @@ import { TextMessage, UserId } from "../types/telegram";
 import { authManager } from "../auth/auth-manager";
 import { tokensManager } from "../auth/tokens-manager";
 import { TextGenerator } from "../openai/text-generator";
+import { textHistory } from "../openai/text-history";
 
 export class TextMessagesHandler {
   private textGenerator: TextGenerator;
@@ -32,9 +33,12 @@ export class TextMessagesHandler {
   private async sendTextGeneratorResponse(message: TextMessage): Promise<void> {
     const text = message.text;
     const userId = message.from.id;
-    await this.setBotStateToTypingForUser(userId);
+    const interval = setInterval(() => this.setBotStateToTypingForUser(userId), 500);
     const response = await this.textGenerator.generate(text, userId);
-    await this.methods.sendMessage(userId, response).catch(() => {});
+    clearInterval(interval);
+    textHistory.addUserMessage(text, userId);
+    textHistory.addAssistantMessage(response, userId);
+    await this.sendResponseToUser(response, userId);
   }
 
   private async setBotStateToTypingForUser(userId: UserId): Promise<void> {
@@ -47,5 +51,9 @@ export class TextMessagesHandler {
 
   private async sendWrongTokenMessageToUser(userId: UserId): Promise<void> {
     await this.methods.sendMessage(userId, "⚠️ Отправьте действительный токен, полученный у администратора!").catch(() => {});
+  }
+
+  private async sendResponseToUser(response: string, userId: UserId): Promise<void> {
+    await this.methods.sendMessage(userId, response, {"parse_mode": "Markdown"}).catch(() => {});
   }
 }

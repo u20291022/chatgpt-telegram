@@ -1,9 +1,9 @@
 import { TelegramBotWithAI } from "./telegram/bot";
 import { TextGenerator } from "./openai/text-generator";
+import { ImageGenerator } from "./openai/image-generator";
 import { Models } from "./types/openai";
 import OpenAI from "openai";
 import dotenv from "dotenv";
-import { ImageGenerator } from "./openai/image-generator";
 dotenv.config();
 
 function main() {

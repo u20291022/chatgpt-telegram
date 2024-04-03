@@ -1,5 +1,6 @@
 import { Telegram } from "telegraf";
-import { Command, CommandData } from "../../types/commands";
+import { Command } from "../../types/command.enum";
+import { CommandData } from "../../types/commands";
 import { StartCommand } from "./start-command";
 import { ClearCommand } from "./clear-command";
 import { ImageCommand } from "./image-command";

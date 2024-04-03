@@ -47,6 +47,10 @@ class FileSystem {
     }
   }
 
+  public getLogsDirectoryPath(): string {
+    return this.logsDirectoryPath;
+  }
+
   public getDataDirectoryPath(): string {
     return this.dataDirectoryPath;
   }

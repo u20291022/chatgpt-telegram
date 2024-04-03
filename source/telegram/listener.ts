@@ -3,7 +3,8 @@ import { CommandsHandler } from "./commands/commands-handler";
 import { Models } from "../types/openai";
 import { message } from "telegraf/filters";
 import { TextMessagesHandler } from "./text-messages-handler";
-import { Command, CommandData } from "../types/commands";
+import { Command } from "../types/command.enum";
+import { CommandData } from "../types/commands";
 
 export class Listener {
   private bot: Telegraf;

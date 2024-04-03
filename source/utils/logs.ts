@@ -10,7 +10,7 @@ class Logs {
 
   private getLogPath(): string {
     const dateString = this.getCurrentDateString();
-    return `${filesystem.getDataDirectoryPath()}/${dateString}.txt`;
+    return `${filesystem.getLogsDirectoryPath()}/${dateString}.txt`;
   }
 
   private formatMessage(text: string): string {

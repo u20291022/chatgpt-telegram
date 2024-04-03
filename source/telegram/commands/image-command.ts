@@ -17,13 +17,14 @@ export class ImageCommand {
     const userId = commandData.from.id;
     const prompt = commandData.args.join(" ");
     if (!authManager.isUserAuthorized(userId)) return;
-    await this.setBotStateToUploadingPhotoeForUser(userId);
+    const interval = setInterval(() => this.setBotStateToUploadingPhotoeForUser(userId), 500);
     const response = await this.imageGenerator.generate(prompt);
+    clearInterval(interval);
     await this.sendImageToUser(userId, response);
   }
 
   private async setBotStateToUploadingPhotoeForUser(userId: UserId): Promise<void> {
-    await this.methods.sendChatAction(userId, "upload_photo");
+    await this.methods.sendChatAction(userId, "upload_photo").catch(() => {});
   }
 
   private async sendImageToUser(userId: UserId, imageData: string): Promise<void> {

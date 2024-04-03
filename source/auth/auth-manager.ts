@@ -30,7 +30,7 @@ class AuthManager {
   }
 
   private userIsOwner(userId: UserId): boolean {
-    return userId === this.getOwnerId();
+    return userId.toString() === this.getOwnerId();
   }
 
   private getOwnerId(): string {
