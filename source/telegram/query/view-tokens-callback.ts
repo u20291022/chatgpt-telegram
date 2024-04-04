@@ -1,7 +1,6 @@
 import { Telegram } from "telegraf";
 import { QueryData } from "../../types/query";
-import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
-import { tokensManager } from "../../auth/tokens-manager";
+import { tokensKeyboard } from "./inline-keyboards/tokens-inline-keyboards";
 
 export class ViewTokensCallback {
   private methods: Telegram;
@@ -19,18 +18,15 @@ export class ViewTokensCallback {
   private async editMessageText(queryData: QueryData): Promise<void> {
     const userId = queryData.from.id;
     const messageId = queryData.message.message_id;
-    await this.methods.editMessageText(userId, messageId, undefined, "Свободные токены:");
+    await this.methods.editMessageText(userId, messageId, undefined, "Управление токенами:").catch(() => {});
   }
 
-  private async editInlineKeyboardToTokensList(queryData: QueryData): Promise<void> {
+  public async editInlineKeyboardToTokensList(queryData: QueryData): Promise<void> {
     const userId = queryData.from.id;
     const messageId = queryData.message.message_id;
-    await this.methods.editMessageReplyMarkup(userId, messageId, undefined, {
-      "inline_keyboard": this.getInlineKeyboardWithTokensList()
-    }).catch(() => {});
-  }
-
-  private getInlineKeyboardWithTokensList(): InlineKeyboardButton[][] {
-    return tokensManager.getTokens().map(token => [ { text: token, callback_data: token } ]);
+    const tokensInlineKeyboard = tokensKeyboard.getTokensListKeyboard();
+    await this.methods.editMessageReplyMarkup(
+      userId, messageId, undefined, {"inline_keyboard": tokensInlineKeyboard}
+      );
   }
 }

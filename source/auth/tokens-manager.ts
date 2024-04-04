@@ -11,6 +11,8 @@ class TokensManager {
   constructor() {
     filesystem.exists(this.tokensFilePath) ?
       this.loadTokensData() : this.saveTokensData();
+
+    for (let i = 0; i < 12; i++) this.createUserToken();
   }
 
   public isTokenAvailable(token: Token): boolean {
