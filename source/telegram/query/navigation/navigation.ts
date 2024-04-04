@@ -31,7 +31,8 @@ export class Navigation {
       if (this.nextPageHaveItems(keyboardLength)) return [this.getForwardButton()];
     }
     else if (this.isCurrentPageLast(keyboardLength)) return [this.getBackButton()];
-    return [this.getBackButton(), this.getForwardButton()]; 
+    else return [this.getBackButton(), this.getForwardButton()];
+    return []; 
   }
 
   private getForwardButton(): Button {

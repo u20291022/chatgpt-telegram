@@ -1,5 +1,5 @@
 import { Telegram } from "telegraf";
-import { QueryData } from "../../types/query";
+import { QueryData } from "../../../types/query";
 
 export class ModelSettingsCallback {
   private methods: Telegram;

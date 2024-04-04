@@ -1,9 +1,9 @@
 import { Telegram } from "telegraf";
-import { QueryData } from "../../types/query";
-import { Query } from "../../types/query.enum";
-import { tokensKeyboard } from "./inline-keyboards/tokens-inline-keyboards";
-import { ViewTokensCallback } from "./view-tokens-callback";
-import { Direction } from "../../types/inline-keyboards";
+import { QueryData } from "../../../types/query";
+import { Query } from "../../../types/query.enum";
+import { tokensKeyboard } from "../inline-keyboards/tokens-inline-keyboards";
+import { ViewTokensCallback } from "../callbacks/tokens/view-tokens-callback";
+import { Direction } from "../../../types/inline-keyboards";
 
 export class NavigationQueryHandler {
   private methods: Telegram;
@@ -24,9 +24,6 @@ export class NavigationQueryHandler {
 
     switch(keyboardType) {
       case Query.VIEW_USERS: {
-        if (direction === "forward") tokensKeyboard.navigation.nextPage();
-        if (direction === "back") tokensKeyboard.navigation.prevPage();
-        this.viewTokensCallback.editInlineKeyboardToTokensList(queryData);
         break;
       }
       case Query.VIEW_TOKENS: {

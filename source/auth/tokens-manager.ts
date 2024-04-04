@@ -11,8 +11,20 @@ class TokensManager {
   constructor() {
     filesystem.exists(this.tokensFilePath) ?
       this.loadTokensData() : this.saveTokensData();
+  }
 
-    for (let i = 0; i < 12; i++) this.createUserToken();
+  public deleteToken(token: Token): void {
+    if (this.isTokenAvailable(token)) {
+      delete this.tokens[token];
+      this.saveTokensData();
+    }
+  }
+
+  public switchTokenType(token: Token): void {
+    if (this.isTokenAvailable(token)) {
+      this.tokens[token].isAdmin = !this.tokens[token].isAdmin;
+      this.saveTokensData();
+    }
   }
 
   public isTokenAvailable(token: Token): boolean {

@@ -1,6 +1,6 @@
 import { Telegram } from "telegraf";
-import { QueryData } from "../../types/query";
-import { tokensKeyboard } from "./inline-keyboards/tokens-inline-keyboards";
+import { QueryData } from "../../../../types/query";
+import { tokensKeyboard } from "../../inline-keyboards/tokens-inline-keyboards";
 
 export class ViewTokensCallback {
   private methods: Telegram;
@@ -27,6 +27,6 @@ export class ViewTokensCallback {
     const tokensInlineKeyboard = tokensKeyboard.getTokensListKeyboard();
     await this.methods.editMessageReplyMarkup(
       userId, messageId, undefined, {"inline_keyboard": tokensInlineKeyboard}
-      );
+      ).catch(() => {});
   }
 }

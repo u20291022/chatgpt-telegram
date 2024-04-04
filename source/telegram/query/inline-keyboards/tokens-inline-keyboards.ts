@@ -2,13 +2,22 @@ import { tokensManager } from "../../../auth/tokens-manager";
 import { Token } from "../../../types/auth";
 import { Keyboard, Button } from "../../../types/inline-keyboards";
 import { Query } from "../../../types/query.enum";
-import { Navigation } from "./navigation";
+import { Navigation } from "../navigation/navigation";
 
 class TokensInlineKeyboards {
   public navigation: Navigation;
 
   constructor() {
     this.navigation = new Navigation({navigationType: Query.VIEW_TOKENS, maxValuesOnPage: 5});
+  }
+
+  public getTokenMenuKeyborad(token: Token): Keyboard {
+    if (!tokensManager.isTokenAvailable(token)) return [];
+    const tokenData = tokensManager.getTokenData(token);
+    return [
+      [{ text: `Установить тип ${tokenData.isAdmin ? "пользователя" : "админитратора"}`, callback_data: `token_menu|switch|${token}` }],
+      [{ text: "Удалить токен", callback_data: `token_menu|delete|${token}` }],
+    ]
   }
 
   public getTokensListKeyboard(): Keyboard {
@@ -28,7 +37,6 @@ class TokensInlineKeyboards {
   }
 
   private getCreateTokenButton(): Button {
-    // TODO
     return { text: "Создать токен", callback_data: "create_token" };
   }
 }
