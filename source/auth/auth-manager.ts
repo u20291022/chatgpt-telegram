@@ -26,6 +26,7 @@ class AuthManager {
     if (!tokensManager.isTokenAvailable(token)) return;
     this.users[userId] = tokensManager.getTokenData(token);
     this.saveUsersData();
+    tokensManager.deleteToken(token);
     logs.write(`Succefully created user [${userId}] from token "${token}"`);
   }
 
