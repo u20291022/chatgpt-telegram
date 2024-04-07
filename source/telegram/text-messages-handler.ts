@@ -54,6 +54,17 @@ export class TextMessagesHandler {
   }
 
   private async sendResponseToUser(response: string, userId: UserId): Promise<void> {
-    await this.methods.sendMessage(userId, response, {"parse_mode": "Markdown"}).catch(() => {});
+    await this.methods.sendMessage(userId, response, {"parse_mode": "Markdown"})
+      .catch(async () => {
+        response = this.toEscapedCharacters(response);
+        await this.sendResponseToUser(response, userId);
+      });
+  }
+
+  private toEscapedCharacters(response: string): string {
+    return response.replace(/\_/g, "\\_")
+    .replace(/\*/g, "\\*")
+    .replace(/\[/g, "\\[")
+    .replace(/\`/g, "\\`");
   }
 }
