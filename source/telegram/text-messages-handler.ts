@@ -4,6 +4,7 @@ import { authManager } from "../auth/auth-manager";
 import { tokensManager } from "../auth/tokens-manager";
 import { TextGenerator } from "../openai/text-generator";
 import { textHistory } from "../openai/text-history";
+import { OpenAiError } from "../types/commands";
 
 export class TextMessagesHandler {
   private textGenerator: TextGenerator;
@@ -34,11 +35,20 @@ export class TextMessagesHandler {
     const text = message.text;
     const userId = message.from.id;
     const interval = setInterval(() => this.setBotStateToTypingForUser(userId), 1000);
-    const response = await this.textGenerator.generate(text, userId);
-    clearInterval(interval);
-    textHistory.addUserMessage(text, userId);
-    textHistory.addAssistantMessage(response, userId);
-    await this.sendResponseToUser(response, userId);
+    try {
+      const response = await this.textGenerator.generate(text, userId);
+      clearInterval(interval);
+      textHistory.addUserMessage(text, userId);
+      textHistory.addAssistantMessage(response, userId);
+      await this.sendResponseToUser(response, userId);
+    }
+    catch(error) {
+      clearInterval(interval);
+      if ((error as OpenAiError).status === 429) {
+        await this.sendRateLimitMessageToUser(userId);
+      }
+    }
+   
   }
 
   private async setBotStateToTypingForUser(userId: UserId): Promise<void> {
@@ -66,5 +76,9 @@ export class TextMessagesHandler {
     .replace(/\*/g, "\\*")
     .replace(/\[/g, "\\[")
     .replace(/\`/g, "\\`");
+  }
+
+  private async sendRateLimitMessageToUser(userId: UserId): Promise<void> {
+    await this.methods.sendMessage(userId, "Достигнут общий лимит сообщений к боту!").catch(() => {});
   }
 }

@@ -1,5 +1,5 @@
 import { Telegram } from "telegraf";
-import { CommandData } from "../../types/commands";
+import { CommandData, OpenAiError } from "../../types/commands";
 import { authManager } from "../../auth/auth-manager";
 import { ImageGenerator } from "../../openai/image-generator";
 import { UserId } from "../../types/telegram";
@@ -19,9 +19,17 @@ export class ImageCommand {
     if (!this.isPromptValid(prompt)) return;
     if (!authManager.isUserAuthorized(userId)) return;
     const interval = setInterval(() => this.setBotStateToUploadingPhotoeForUser(userId), 1000);
-    const response = await this.imageGenerator.generate(prompt);
-    clearInterval(interval);
-    await this.sendImageToUser(userId, response);
+    try {
+      const response = await this.imageGenerator.generate(prompt);
+      clearInterval(interval);
+      await this.sendImageToUser(userId, response);
+    }
+    catch(error) {
+      clearInterval(interval);
+      if ((error as OpenAiError).status === 429) {
+        await this.sendRateLimitMessageToUser(userId);
+      }
+    }
   }
 
   private async setBotStateToUploadingPhotoeForUser(userId: UserId): Promise<void> {
@@ -29,10 +37,14 @@ export class ImageCommand {
   }
 
   private async sendImageToUser(userId: UserId, imageData: string): Promise<void> {
-    await this.methods.sendPhoto(userId, imageData);
+    await this.methods.sendPhoto(userId, imageData).catch(() => {});
   }
 
   private isPromptValid(prompt: string): boolean {
     return prompt.length > 0 && prompt.replace(/\ /g, "").length > 0;
+  }
+
+  private async sendRateLimitMessageToUser(userId: UserId): Promise<void> {
+    await this.methods.sendMessage(userId, "Достигнут общий лимит сообщений к боту!").catch(() => {});
   }
 }
