@@ -1,6 +1,10 @@
 import { filesystem } from "./filesystem";
 
 class Logs {
+  public error<Data extends { toString(): string }>(data: Data): void {
+    this.write(`[Error] ${data}`);
+  }
+
   public write<Data extends { toString(): string }>(data: Data): void {
     const logPath = this.getLogPath();
     const message = this.formatMessage(data.toString());

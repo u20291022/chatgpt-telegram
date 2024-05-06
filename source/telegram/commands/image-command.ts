@@ -3,6 +3,7 @@ import { CommandData, OpenAiError } from "../../types/commands";
 import { authManager } from "../../auth/auth-manager";
 import { ImageGenerator } from "../../openai/image-generator";
 import { UserId } from "../../types/telegram";
+import { logs } from "../../utils/logs";
 
 export class ImageCommand {
   private methods: Telegram;
@@ -26,7 +27,11 @@ export class ImageCommand {
     }
     catch(error) {
       clearInterval(interval);
-      if ((error as OpenAiError).status === 429) {
+
+      const openAiError = error as OpenAiError;
+      logs.error(`reason: ${openAiError.error.message} | status: ${openAiError.status}`)
+
+      if (openAiError.status === 429) {
         await this.sendRateLimitMessageToUser(userId);
       }
     }

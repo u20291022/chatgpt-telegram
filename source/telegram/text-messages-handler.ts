@@ -5,6 +5,7 @@ import { tokensManager } from "../auth/tokens-manager";
 import { TextGenerator } from "../openai/text-generator";
 import { textHistory } from "../openai/text-history";
 import { OpenAiError } from "../types/commands";
+import { logs } from "../utils/logs";
 
 export class TextMessagesHandler {
   private textGenerator: TextGenerator;
@@ -44,7 +45,11 @@ export class TextMessagesHandler {
     }
     catch(error) {
       clearInterval(interval);
-      if ((error as OpenAiError).status === 429) {
+
+      const openAiError = error as OpenAiError;
+      logs.error(`reason: ${openAiError.error.message} | status: ${openAiError.status}`)
+
+      if (openAiError.status === 429) {
         await this.sendRateLimitMessageToUser(userId);
       }
     }
